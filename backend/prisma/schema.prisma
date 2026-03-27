@@ -1,0 +1,77 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  name      String
+  email     String  @unique
+  password  String
+  role      String
+
+  groupsCreated      Group[] @relation("CreatedByUser")
+  groupMembers       GroupMember[]
+  assignmentsCreated Assignment[] @relation("CreatedByUser")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Group {
+  id        Int     @id @default(autoincrement())
+  name      String
+  createdBy Int
+  creator   User    @relation("CreatedByUser", fields: [createdBy], references: [id])
+
+  groupMembers  GroupMember[]
+  submissions   Submission[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model GroupMember {
+  id      Int @id @default(autoincrement())
+  groupId Int
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId  Int
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([groupId, userId])
+}
+
+model Assignment {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String?
+  dueDate     DateTime?
+  link        String?
+  createdBy   Int
+  creator     User    @relation("CreatedByUser", fields: [createdBy], references: [id])
+
+  submissions Submission[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Submission {
+  id           Int     @id @default(autoincrement())
+  groupId      Int
+  group        Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  assignmentId Int
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  confirmed    Boolean @default(false)
+  confirmedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([groupId, assignmentId])
+}
