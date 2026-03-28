@@ -43,13 +43,13 @@ export default function SignInPage({ onNavigate }) {
         },
       );
 
-      const role = response.data.user.role;
-
       console.log("Login successful:", response.data);
       setLoading(false);
       if (response.data?.token) {
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem("role");
+        localStorage.setItem("role", response.data.role);
+        const role = response.data.role;
+
         onNavigate?.(
           role === "admin" ? "admin-dashboard" : "student-dashboard",
         );
