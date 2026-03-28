@@ -1,8 +1,5 @@
 // pages/GroupDetails.jsx
 import { useParams } from "react-router-dom";
-import Layout from "../components/layout/Layout";
-import Avatar from "../components/common/Avatar";
-import GroupAssignmentItem from "../components/groups/GroupAssignmentItem";
 
 export default function GroupDetails() {
   const { id } = useParams();
@@ -20,7 +17,7 @@ export default function GroupDetails() {
   };
 
   return (
-    <Layout>
+    <>
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-semibold">{group.name}</h1>
@@ -51,6 +48,6 @@ export default function GroupDetails() {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 }

@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 export default function SignInPage({ onNavigate }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const validate = () => {
     const e = {};
@@ -15,15 +18,53 @@ export default function SignInPage({ onNavigate }) {
     return e;
   };
 
-  const handleSubmit = (ev) => {
+  const handleSubmit = async (ev) => {
     ev.preventDefault();
     const e = validate();
     if (Object.keys(e).length) {
       setErrors(e);
       return;
     }
-    // Simulate sign-in success → navigate home
-    onNavigate?.("home");
+
+    setLoading(true);
+    setApiError("");
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        {
+          email,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const role = response.data.user.role;
+
+      console.log("Login successful:", response.data);
+      setLoading(false);
+      if (response.data?.token) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("role");
+        onNavigate?.(
+          role === "admin" ? "admin-dashboard" : "student-dashboard",
+        );
+        window.location.href = role === "admin" ? "/admin" : "/student";
+      }
+    } catch (error) {
+      setLoading(false);
+      if (error.response) {
+        setApiError(error.response.data?.message || "Login failed");
+      } else if (error.request) {
+        setApiError("No response from server. Please try again.");
+      } else {
+        setApiError("An error occurred. Please try again.");
+      }
+    }
   };
 
   const inputBase = (hasError) =>
@@ -156,16 +197,24 @@ export default function SignInPage({ onNavigate }) {
               )}
             </div>
 
+            {/* API Error */}
+            {apiError && (
+              <p className="text-xs text-red-500 font-[Inter,sans-serif]">
+                {apiError}
+              </p>
+            )}
+
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3.5 rounded-lg text-white font-semibold text-sm font-[Inter,sans-serif] hover:opacity-90 active:scale-[0.98] transition-all"
+              disabled={loading}
+              className="w-full py-3.5 rounded-lg text-white font-semibold text-sm font-[Inter,sans-serif] hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 background: "linear-gradient(180deg,#005bbf 0%,#1a73e8 100%)",
                 boxShadow: "0 4px 16px rgba(0,91,191,0.25)",
               }}
             >
-              Sign In
+              {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
@@ -173,12 +222,17 @@ export default function SignInPage({ onNavigate }) {
           <div className="text-center mt-8">
             <p className="text-sm text-[#414754] font-[Inter,sans-serif]">
               New to Joineazy?{" "}
-              <button
-                onClick={() => onNavigate?.("register")}
+              <Link
+                to="/signup"
                 className="text-[#005bbf] font-bold hover:underline ml-1"
               >
-                Create an account
-              </button>
+                <button
+                  onClick={() => onNavigate?.("register")}
+                  className="text-[#005bbf] font-bold hover:underline ml-1"
+                >
+                  Create an account
+                </button>
+              </Link>
             </p>
           </div>
         </div>

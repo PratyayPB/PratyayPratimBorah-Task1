@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { Outlet } from "react-router-dom";
-const StudentDashboardLayout = () => {
+const AdminDashboardLayout = () => {
   return (
     <div className="flex mr-10">
       <aside className="w-64 bg-gray-100 h-screen mr-10">
@@ -15,4 +15,4 @@ const StudentDashboardLayout = () => {
   );
 };
 
-export default StudentDashboardLayout;
+export default AdminDashboardLayout;

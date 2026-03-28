@@ -41,8 +41,9 @@ const icons = {
 
 const NAV = [
   { key: "dashboard", label: "Dashboard" },
-  { key: "groups", label: "Groups" },
+
   { key: "assignment", label: "Assignments" },
+  { key: "task_alt", label: "Submissions" },
 ];
 
 /**
@@ -54,9 +55,9 @@ const NAV = [
 
 //student= dynamic user id
 const ROUTES = {
-  dashboard: "/student",
-  groups: "/student/groups",
-  assignment: "/student/assignments",
+  dashboard: "/admin",
+  submission: "/admin/submissions",
+  assignment: "/admin/assignments",
 };
 
 export default function Sidebar() {

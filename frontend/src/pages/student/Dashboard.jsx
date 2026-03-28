@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StudentDashboardLayout from "./StudentDashboardLayout";
+import GroupCard from "../../components/ui/GroupCard";
+import AssignmentCard from "../../components/ui/AssignmentCard";
+import axios from "axios";
 // ── Avatar URLs ──────────────────────────────────────────────────────────────
 const AVATARS = {
   crispr: [
@@ -87,396 +90,336 @@ const AssignIcon = ({ type }) => {
   );
 };
 
-// ── Group card ────────────────────────────────────────────────────────────────
-function GroupCard({
-  tag,
-  tagBg,
-  iconBg,
-  iconColor,
-  icon,
-  title,
-  desc,
-  avatars,
-  extraCount,
-  progress,
-}) {
-  return (
-    <div
-      className="bg-white rounded-2xl p-6 flex flex-col gap-4 hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
-      style={{
-        boxShadow: "0 12px 32px -4px rgba(25,28,29,0.06)",
-        border: "1px solid rgba(193,198,214,0.1)",
-      }}
-    >
-      <div className="flex justify-between items-start">
-        <div
-          className="p-3 rounded-xl"
-          style={{ background: iconBg, color: iconColor }}
-        >
-          {icon}
-        </div>
-        <span
-          className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded"
-          style={{
-            background: tagBg ?? "#e7e8e9",
-            color: "#414754",
-            fontFamily: "Inter, sans-serif",
-          }}
-        >
-          {tag}
-        </span>
-      </div>
-      <div>
-        <h3
-          className="text-base font-bold text-[#191c1d]"
-          style={{ fontFamily: "Manrope, sans-serif" }}
-        >
-          {title}
-        </h3>
-        <p
-          className="text-xs text-[#5f6368] mt-1 leading-relaxed"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
-          {desc}
-        </p>
-      </div>
-      <div className="flex items-center gap-1 -space-x-2">
-        {avatars.map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            alt=""
-            className="w-7 h-7 rounded-full border-2 border-white object-cover"
-          />
-        ))}
-        {extraCount > 0 && (
-          <span
-            className="w-7 h-7 rounded-full border-2 border-white bg-[#e7e8e9] flex items-center justify-center text-[10px] font-bold text-[#414754]"
-            style={{ fontFamily: "Inter, sans-serif" }}
-          >
-            +{extraCount}
-          </span>
-        )}
-      </div>
-      <div className="space-y-1.5">
-        <div
-          className="flex justify-between text-xs font-semibold"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
-          <span className="text-[#191c1d]">Progress</span>
-          <span style={{ color: "#005bbf" }}>{progress}%</span>
-        </div>
-        <div
-          className="w-full h-1.5 rounded-full overflow-hidden"
-          style={{ background: "#e7e8e9" }}
-        >
-          <div
-            className="h-full rounded-full"
-            style={{ width: `${progress}%`, background: "#005bbf" }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const GROUPS = [
-  {
-    tag: "Bio-Ethics Lab",
-    tagBg: "#e8f5e9",
-    iconBg: "rgba(0,109,42,0.08)",
-    iconColor: "#006d2a",
-    icon: (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M6.5 10h-2v7h2v-7zm5 0h-2v7h2v-7zm8.5 9H2v2h18v-2zm-3.5-9h-2v7h2v-7zM11 1L2 6v2h18V6l-9-5z" />
-      </svg>
-    ),
-    title: "CRISPR Research",
-    desc: "Analyzing ethical frameworks for genomic editing in modern pediatrics.",
-    avatars: AV3,
-    extraCount: 2,
-    progress: 85,
-  },
-  {
-    tag: "Architecture",
-    tagBg: "#e3f2fd",
-    iconBg: "rgba(0,91,191,0.08)",
-    iconColor: "#005bbf",
-    icon: (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 3L2 12h3v9h6v-6h2v6h6v-9h3L12 3z" />
-      </svg>
-    ),
-    title: "Urban Resilience",
-    desc: "Redesigning coastal infrastructure to combat sea-level rising in Jakarta.",
-    avatars: AV2,
-    extraCount: 4,
-    progress: 42,
-  },
-  {
-    tag: "Humanities",
-    tagBg: "#fce4ec",
-    iconBg: "rgba(91,95,100,0.08)",
-    iconColor: "#5b5f64",
-    icon: (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z" />
-      </svg>
-    ),
-    title: "Digital Archives",
-    desc: "Preserving oral histories from the 1950s using blockchain verification.",
-    avatars: AV3,
-    extraCount: 0,
-    progress: 12,
-  },
-];
-
-const ASSIGNMENTS = [
-  {
-    iconType: "doc",
-    title: "Literature Review: CRISPR",
-    sub: "Advanced Genomics 402",
-    date: "Oct 24, 2023",
-    status: "Submitted",
-  },
-  {
-    iconType: "draw",
-    title: "Infrastructure Blueprint V1",
-    sub: "Urban Resilience Lab",
-    date: "Nov 02, 2023",
-    status: "Pending",
-  },
-  {
-    iconType: "voice",
-    title: "Oral History Metadata",
-    sub: "Digital Humanities",
-    date: "Oct 18, 2023",
-    status: "Overdue",
-  },
-  {
-    iconType: "analytics",
-    title: "Quantitative Data Summary",
-    sub: "Research Methods",
-    date: "Nov 15, 2023",
-    status: "Pending",
-  },
-];
-
 export default function StudentDashboard() {
   const [notifCount] = useState(3);
+  const [groups, setGroups] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [groupName, setGroupName] = useState("");
+
+  const getUserFromToken = () => {
+    const jwtToken = localStorage.getItem("token");
+    if (!jwtToken) return null;
+    try {
+      const payload = jwtToken.split(".")[1];
+      if (!payload) return null;
+      const decoded = JSON.parse(atob(payload));
+      return {
+        id: decoded?.id || decoded?._id || decoded?.userId || null,
+        name: decoded?.name || null,
+      };
+    } catch (err) {
+      console.error("Failed to decode token", err);
+      return null;
+    }
+  };
+
+  const handleCreateGroup = async (e) => {
+    e.preventDefault();
+    if (!groupName.trim()) return;
+
+    const user = getUserFromToken();
+    if (!user || !user.id) {
+      alert("User not authenticated");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      console.log(
+        "Creating group with name:",
+        groupName,
+        "by userId:",
+        user.id,
+        "userName:",
+        user.name,
+      );
+      // Create group
+      await axios.post(
+        "http://localhost:5000/api/groups",
+        {
+          name: groupName,
+          createdBy: user.id,
+          creator: user.name || "Unknown",
+        },
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        },
+      );
+
+      // Refetch groups
+      const groupsRes = await axios.get("http://localhost:5000/api/groups", {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+      setGroups(groupsRes.data || []);
+
+      setIsModalOpen(false);
+      setGroupName("");
+    } catch (err) {
+      console.error("Error creating group:", err);
+      alert("Failed to create group");
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.warn("No token found in local storage");
+          return;
+        }
+
+        const [groupsRes, assignmentsRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/groups/", {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          }),
+          axios.get("http://localhost:5000/api/assignments", {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          }),
+        ]);
+
+        setGroups(groupsRes.data || []);
+        setAssignments(assignmentsRes.data || []);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Unable to load dashboard data. Please try again later.");
+      }
+    };
+
+    const fetchUser = async () => {
+      const userData = getUserFromToken();
+      if (!userData || !userData.id) {
+        console.warn("No user data found in token");
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Fetching user data for userId:", userData.id);
+        const userRes = await axios.get(
+          `http://localhost:5000/api/users/${userData.id}`,
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          },
+        );
+        setUser(userRes.data);
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+      }
+    };
+
+    const runAll = async () => {
+      await Promise.all([fetchData(), fetchUser()]);
+      setLoading(false);
+    };
+
+    runAll();
+  }, []);
 
   return (
-    <StudentDashboardLayout>
-      <div
-        className="ml-20 mr-10 min-h-screen pb-24"
-        style={{ background: "#f8f9fa" }}
+    <div style={{ background: "#f8f9fa" }}>
+      {/* Top bar */}
+      <header
+        className="sticky top-0 z-30 flex justify-between items-center px-8 lg:px-10 py-5"
+        style={{
+          background: "rgba(248,249,250,0.88)",
+          backdropFilter: "blur(12px)",
+        }}
       >
-        {/* Top bar */}
-        <header
-          className="sticky top-0 z-30 flex justify-between items-center px-8 lg:px-10 py-5"
-          style={{
-            background: "rgba(248,249,250,0.88)",
-            backdropFilter: "blur(12px)",
-          }}
-        >
-          <div>
-            <h1
-              className="text-2xl lg:text-3xl font-extrabold tracking-tight text-[#191c1d]"
-              style={{ fontFamily: "Manrope, sans-serif" }}
-            >
-              Good morning, Jane Doe!
-            </h1>
-            <p
-              className="text-sm text-[#5f6368] mt-0.5"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              Here is what is happening with your scholarly projects today.
-            </p>
+        <div>
+          <h1
+            className="text-2xl lg:text-3xl font-extrabold tracking-tight text-[#191c1d]"
+            style={{ fontFamily: "Manrope, sans-serif" }}
+          >
+            Hello, {user?.name || "Jane Doe"}!
+          </h1>
+          <p
+            className="text-sm text-[#5f6368] mt-0.5"
+            style={{ fontFamily: "Inter, sans-serif" }}
+          >
+            Here is what is happening with your scholarly projects today.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            className="relative p-2 rounded-full transition-colors text-[#414754]"
+            style={{ background: "#e7e8e9" }}
+          >
+            <BellIcon />
+            {notifCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#005bbf] text-white text-[9px] font-bold flex items-center justify-center">
+                {notifCount}
+              </span>
+            )}
+          </button>
+          <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-[#005bbf]/15">
+            <img
+              src={PROFILE}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              className="relative p-2 rounded-full transition-colors text-[#414754]"
-              style={{ background: "#e7e8e9" }}
-            >
-              <BellIcon />
-              {notifCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#005bbf] text-white text-[9px] font-bold flex items-center justify-center">
-                  {notifCount}
-                </span>
-              )}
-            </button>
-            <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-[#005bbf]/15">
-              <img
-                src={PROFILE}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </header>
+        </div>
+      </header>
 
-        <div className="px-8 lg:px-10 space-y-12">
-          {/* Groups section */}
-          <section>
-            <div className="flex justify-between items-end mb-6">
-              <div>
-                <h2
-                  className="text-2xl font-bold text-[#191c1d]"
-                  style={{ fontFamily: "Manrope, sans-serif" }}
-                >
-                  Your Groups
-                </h2>
-                <p
-                  className="text-sm text-[#5f6368] mt-0.5"
-                  style={{ fontFamily: "Inter, sans-serif" }}
-                >
-                  Active collaborations and project teams.
-                </p>
-              </div>
-              <button
-                className="flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-xl transition-all active:scale-95"
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  background: "linear-gradient(180deg,#005bbf,#1a73e8)",
-                  boxShadow: "0 8px 24px -4px rgba(0,91,191,0.2)",
-                }}
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
-                Create Group
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {GROUPS.map((g) => (
-                <GroupCard key={g.title} {...g} />
-              ))}
-            </div>
-          </section>
-
-          {/* Assignments section */}
-          <section>
-            <div className="mb-6">
+      <div className="px-8 lg:px-10 space-y-12">
+        {/* Groups section */}
+        <section>
+          <div className="flex justify-between items-end mb-6">
+            <div>
               <h2
                 className="text-2xl font-bold text-[#191c1d]"
                 style={{ fontFamily: "Manrope, sans-serif" }}
               >
-                Assignments
+                Your Groups
               </h2>
               <p
                 className="text-sm text-[#5f6368] mt-0.5"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
-                Upcoming deadlines and submission status.
+                Active collaborations and project teams.
               </p>
             </div>
-            <div
-              className="bg-white rounded-2xl overflow-hidden"
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-xl transition-all active:scale-95"
               style={{
-                boxShadow: "0 12px 32px -4px rgba(25,28,29,0.06)",
-                border: "1px solid rgba(193,198,214,0.08)",
+                fontFamily: "Inter, sans-serif",
+                background: "linear-gradient(180deg,#005bbf,#1a73e8)",
+                boxShadow: "0 8px 24px -4px rgba(0,91,191,0.2)",
               }}
             >
-              <table className="w-full text-left">
-                <thead>
-                  <tr style={{ background: "#f3f4f5" }}>
-                    {["Assignment Title", "Due Date", "Status"].map((h, i) => (
-                      <th
-                        key={h}
-                        className="px-6 lg:px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-[#414754]"
-                        style={{
-                          fontFamily: "Inter, sans-serif",
-                          textAlign: i === 2 ? "right" : "left",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {ASSIGNMENTS.map((a, i) => (
-                    <tr
-                      key={i}
-                      className="transition-colors"
-                      style={{ borderTop: "1px solid #e7e8e9" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background =
-                          "rgba(243,244,245,0.5)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = "transparent")
-                      }
-                    >
-                      <td className="px-6 lg:px-8 py-5">
-                        <div className="flex items-center gap-4">
-                          <span className="flex-shrink-0">
-                            <AssignIcon type={a.iconType} />
-                          </span>
-                          <div>
-                            <p
-                              className="text-sm font-bold text-[#191c1d]"
-                              style={{ fontFamily: "Inter, sans-serif" }}
-                            >
-                              {a.title}
-                            </p>
-                            <p
-                              className="text-[10px] text-[#5f6368] mt-0.5"
-                              style={{ fontFamily: "Inter, sans-serif" }}
-                            >
-                              {a.sub}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 lg:px-8 py-5">
-                        <span
-                          className="text-sm font-medium text-[#414754]"
-                          style={{ fontFamily: "Inter, sans-serif" }}
-                        >
-                          {a.date}
-                        </span>
-                      </td>
-                      <td className="px-6 lg:px-8 py-5 text-right">
-                        <StatusChip status={a.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div
-                className="px-8 py-5"
-                style={{
-                  background: "#f3f4f5",
-                  borderTop: "1px solid #e7e8e9",
-                }}
-              >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+              Create Group
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {loading ? (
+              <p className="text-sm text-[#414754]">Loading groups...</p>
+            ) : error ? (
+              <p className="text-sm text-red-600">{error}</p>
+            ) : groups.length === 0 ? (
+              <p className="text-sm text-[#414754]">No groups found.</p>
+            ) : (
+              groups.map((g) => (
+                <GroupCard
+                  key={g.id || g.title}
+                  id={(g.id || g.title || "group")
+                    .toString()
+                    .toLowerCase()
+                    .replace(/\s+/g, "-")}
+                  name={g.title || g.name || "Unnamed Group"}
+                  members={
+                    (g.members?.length || g.avatars?.length || 0) +
+                    (g.extraCount || 0)
+                  }
+                  assignments={Math.max(0, Math.round((g.progress || 0) / 20))}
+                />
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Assignments section */}
+        <section>
+          <div className="mb-6">
+            <h2
+              className="text-2xl font-bold text-[#191c1d]"
+              style={{ fontFamily: "Manrope, sans-serif" }}
+            >
+              Assignments
+            </h2>
+            <p
+              className="text-sm text-[#5f6368] mt-0.5"
+              style={{ fontFamily: "Inter, sans-serif" }}
+            >
+              Upcoming deadlines and submission status.
+            </p>
+          </div>
+          <div className="p-4 md:p-6">
+            {loading ? (
+              <p className="text-sm text-[#414754]">Loading assignments...</p>
+            ) : error ? (
+              <p className="text-sm text-red-600">{error}</p>
+            ) : assignments.length === 0 ? (
+              <p className="text-sm text-[#414754]">No assignments found.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {assignments.map((a, i) => (
+                  <AssignmentCard
+                    key={a.id || i}
+                    title={a.title || "Untitled"}
+                    description={a.description || a.sub || "No description"}
+                    dueDate={a.dueDate || a.date || "TBD"}
+                    status={a.status || "Pending"}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      {/* FAB */}
+      <button
+        className="fixed bottom-8 right-8 w-14 h-14 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
+        style={{
+          background: "linear-gradient(135deg,#005bbf,#1a73e8)",
+          boxShadow: "0 12px 32px -4px rgba(0,91,191,0.35)",
+        }}
+      >
+        <AddTaskIcon />
+      </button>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h3 className="text-lg font-semibold mb-4">Create New Group</h3>
+            <form onSubmit={handleCreateGroup}>
+              <input
+                type="text"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="Group Name"
+                className="w-full p-2 border border-gray-300 rounded mb-4"
+                required
+              />
+              <div className="flex justify-end gap-2">
                 <button
-                  className="block mx-auto text-sm font-bold text-[#005bbf] hover:underline"
-                  style={{ fontFamily: "Inter, sans-serif" }}
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded"
                 >
-                  View All Assignments
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Create
                 </button>
               </div>
-            </div>
-          </section>
+            </form>
+          </div>
         </div>
-
-        {/* FAB */}
-        <button
-          className="fixed bottom-8 right-8 w-14 h-14 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
-          style={{
-            background: "linear-gradient(135deg,#005bbf,#1a73e8)",
-            boxShadow: "0 12px 32px -4px rgba(0,91,191,0.35)",
-          }}
-        >
-          <AddTaskIcon />
-        </button>
-      </div>
-    </StudentDashboardLayout>
+      )}
+    </div>
   );
 }

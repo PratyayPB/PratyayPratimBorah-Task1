@@ -1,10 +1,12 @@
-﻿import prisma from "../config/db.js";
+﻿import { cons } from "effect/List";
+import prisma from "../config/db.js";
 
 export async function createGroup(req, res) {
-  const { name, createdBy } = req.body;
+  const { name } = req.body;
+  const userId = req.user.id;
   try {
     const group = await prisma.group.create({
-      data: { name, createdBy }
+      data: { name, createdBy: userId },
     });
     res.status(201).json(group);
   } catch (error) {
@@ -15,7 +17,43 @@ export async function createGroup(req, res) {
 
 export async function getGroups(req, res) {
   try {
-    const groups = await prisma.group.findMany({ include: { creator: true, groupMembers: true } });
+    const userId = req.user.id;
+
+    const groups = await prisma.group.findMany({
+      where: {
+        OR: [
+          {
+            groupMembers: {
+              some: { userId },
+            },
+          },
+          {
+            createdBy: userId,
+          },
+        ],
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        groupMembers: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
     res.status(200).json(groups);
   } catch (error) {
     console.error(error);
@@ -28,7 +66,7 @@ export async function getGroupById(req, res) {
   try {
     const group = await prisma.group.findUnique({
       where: { id: Number(id) },
-      include: { creator: true, groupMembers: true, submissions: true }
+      include: { creator: true, groupMembers: true, submissions: true },
     });
     if (!group) return res.status(404).json({ error: "Group not found" });
     res.status(200).json(group);
@@ -44,7 +82,7 @@ export async function updateGroup(req, res) {
   try {
     const group = await prisma.group.update({
       where: { id: Number(id) },
-      data: { name }
+      data: { name },
     });
     res.status(200).json(group);
   } catch (error) {
